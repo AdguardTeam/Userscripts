@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Disable Video AutoPlay by Adguard
 // @namespace    https://adguard.com/
-// @version      1.0
+// @version      1.0.1
 // @description  Ensures that HTML5 video elements do not autoplay
 // @author       Adguard
 // @include      http://*
