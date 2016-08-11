@@ -7,6 +7,8 @@
 // @include      http://*
 // @include      https://*
 // @run-at       document-end
+// @downloadURL  https://github.com/AdguardTeam/Userscripts/raw/master/disableAutoplay/disable-autoplay.user.js
+// @updateURL    https://github.com/AdguardTeam/Userscripts/raw/master/disableAutoplay/disable-autoplay.user.js
 // @grant        GM_info
 // ==/UserScript==
 
