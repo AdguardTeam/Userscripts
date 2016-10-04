@@ -3,7 +3,7 @@
 // @description     Userscript for blocking sponsored posts in VK groups. Based on http://pastebin.com/JXHpU0ku
 // @description:ru  Расширение для блокирования рекламных постов в ВК. Основано на http://pastebin.com/JXHpU0ku
 // @author          Adguard
-// @version         1.0.0
+// @version         1.0.1
 // @include         *://vk.com/*
 // @run-at          document-end
 // @downloadURL     https://github.com/AdguardTeam/Userscripts/raw/master/adguardForVk/adguard-vk.user.js
@@ -359,9 +359,10 @@
         }
     }
 
+    // First time execution
     inner();
 
     // Handle dynamically added elements
-    domObserver = new DomObserver(inner);
+    var domObserver = new DomObserver(inner);
     domObserver.observe();
 })();
