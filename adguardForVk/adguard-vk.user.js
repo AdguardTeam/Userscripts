@@ -6,8 +6,8 @@
 // @version         1.0.0
 // @include         *://vk.com/*
 // @run-at          document-end
-// @downloadURL     https://github.com/AdguardTeam/Userscripts/raw/master/adguardForVK/adguard-vk.user.js
-// @updateURL       https://github.com/AdguardTeam/Userscripts/raw/master/adguardForVK/adguard-vk.user.js
+// @downloadURL     https://github.com/AdguardTeam/Userscripts/raw/master/adguardForVk/adguard-vk.user.js
+// @updateURL       https://github.com/AdguardTeam/Userscripts/raw/master/adguardForVk/adguard-vk.user.js
 // @grant           none
 // ==/UserScript==
 
