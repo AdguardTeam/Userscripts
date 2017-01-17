@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Autofill Phishing Blocker by Adguard
 // @namespace    https://adguard.com/
-// @version      1.0
+// @version      1.0.0
 // @description  Disables autofill of the input fields, which are not on the screen. Learn more about autofill phishing here: https://github.com/anttiviljami/browser-autofill-phishing/
 // @author       Adguard
 // @include      http://*
