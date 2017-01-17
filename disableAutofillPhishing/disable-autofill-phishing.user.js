@@ -12,54 +12,54 @@
 // @updateURL    https://github.com/AdguardTeam/Userscripts/raw/master/disableAutofillPhishing/disable-autofill-phishing.user.js
 // ==/UserScript==
 
-(function() {
+(function () {
     'use strict';
 
     /**
      * Checks if specified element is visible
      */
-    var isVisible = function(element) {
-        return !!(element.offsetWidth || element.offsetHeight || element.getClientRects().length) && 
+    var isVisible = function (element) {
+        return !!(element.offsetWidth || element.offsetHeight || element.getClientRects().length) &&
             (element.offsetLeft >= 0);
     };
 
     /**
      * Checks if specified element is visible on the screen
      */
-    var isScrolledIntoView = function(element) {
+    var isScrolledIntoView = function (element) {
         var elementTop = element.getBoundingClientRect().top;
         var elementBottom = element.getBoundingClientRect().bottom;
         var isVisible = (elementTop >= 0) && (elementBottom <= window.innerHeight);
         return isVisible;
     };
-    
+
     /**
      * Disables autocomplete
      */
-    var disableAutofillPhishing = function() {
+    var disableAutofillPhishing = function () {
         var elements = document.querySelectorAll('input[name]:not([autocomplete="off"])');
         var iElements = elements.length;
         while (iElements--) {
-           var element = elements[iElements];
-           if (!isVisible(element) || !isScrolledIntoView(element)) {
-               element.setAttribute("autocomplete", "off");
-           }
+            var element = elements[iElements];
+            if (!isVisible(element) || !isScrolledIntoView(element)) {
+                element.setAttribute("autocomplete", "off");
+            }
         }
     };
 
     /**
      * Called on any DOM change to handle "video" tags added dynamically
      */
-	var handleDomChange = function(mutations) {
-		if (mutations.length === 0) {
-			disableAutofillPhishing();
-		}
-	};
+    var handleDomChange = function (mutations) {
+        if (mutations.length === 0) {
+            disableAutofillPhishing();
+        }
+    };
 
     /**
      * Initialize script
      */
-	var init = function() {
+    var init = function () {
         // Check existing elements first
         disableAutofillPhishing();
 
@@ -69,7 +69,7 @@
             childList: true,
             subtree: true
         });
-	};
+    };
 
     init();
 })();
