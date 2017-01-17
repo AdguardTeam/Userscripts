@@ -3,7 +3,7 @@
 // @description     Userscript for blocking sponsored posts in VK groups. Based on http://pastebin.com/JXHpU0ku
 // @description:ru  Расширение для блокирования рекламных постов в ВК. Основано на http://pastebin.com/JXHpU0ku
 // @author          Adguard
-// @version         1.0.1
+// @version         1.0.2
 // @include         *://vk.com/*
 // @run-at          document-end
 // @downloadURL     https://github.com/AdguardTeam/Userscripts/raw/master/adguardForVk/adguard-vk.user.js
@@ -13,12 +13,36 @@
 
 (function () {
 
+    'use strict';
+    
     // Ad words groups.
     // Each item describes a one rule with `and` boolean logic, so rule '[1,2,3]' will hide posts 
     // that contains '1', '2' and '3' irrespective of order.
     // Original text will be lowercased before search operation, so each rule should be in lowercase to work.
     var junkGroups = [
-        ['://vk.cc/'],
+        ['vk.cc/'],
+        ['$link-text=покaзaть пoлнocтью'],
+        ['$link-text=продолжение'],
+        ['$link-text=ты должен видеть это'],
+        ['$link-text=кликай'],
+        ['$link-text=подписаться'],
+        ['$link-text=смотреть'],
+        ['$link-text=тебе сюда'],
+        ['$link-text=я парень'],
+        ['$link-text="•"'],
+        ['$repost-author=max twain'],
+        ['$repost-author=nine store'],
+        ['$repost-author=стоп бред!'],
+        ['$repost-author=красное&белое 18+'],
+        ['$repost-author=яуза парк'],
+        ['$repost-author=дисконт'],
+        ['$repost-author=fisher-price'],
+        ['$repost-author=adidas originals'],
+        ['$repost-author=drinkenergy.ru'],
+        ['$repost-author=history porn'],
+        ['$repost-author=убойные приколы'],
+        ['$repost-author=apple room'],
+        ['$repost-text=жми '],
         ['подпишись'],
         ['подписывайся'],
         ['подписывайтесь'],
@@ -27,6 +51,9 @@
         ['подписался на'],
         ['подписалась на'],
         ['не подписан'],
+        ['присоединяйтесь к нам'],
+        ['присоединяй', 'только самое полезное'],
+        ['присоединяйтесь', 'vk.com/'],
         ['заказать сейчас'],
         ['заказать', 'акци'],
         ['заказать', 'здесь'],
@@ -35,17 +62,15 @@
         ['смотреть ответ'],
         ['узнать ответ'],
         ['ответ в источнике'],
-        ['продолжение', 'в источнике'],
         ['результат в источнике'],
         ['смотри сюда'],
         ['смотреть фото в'],
-        ['покaзaть продолжение'],
-        ['читать продолжение'],
+        ['читать продолжени'],
         ['читать все'],
         ['подробности здесь'],
         ['тут подробности'],
         ['узнайте подробности'],
-        ['узнайть подробности в'],
+        ['узнать подробности в'],
         ['узнать больше', 'зарегистрироваться'],
         ['инфа здесь'],
         ['читать полностью'],
@@ -54,12 +79,16 @@
         ['прoчитaть пoлнocтью'],
         ['розыгрыш', 'репост'],
         ['розыгрыш', 'условия'],
+        ['розыгрыш', 'участвуй'],
         ['конкурс', 'репост'],
         ['конкурс', 'рекомендую'],
         ['репост', 'если'],
         ['за репост', 'к карме'],
         ['максимальный репост'],
         ['нашёл', 'рекомендую'],
+        ['набира', 'лайков', 'сколько набер'],
+        ['набира', 'лайков', 'заслужива'],
+        ['минус', 'кг', 'диет', 'запись'],
         ['распродажа'],
         ['скачaть', 'android'],
         ['скачaть', 'ios'],
@@ -86,6 +115,7 @@
         ['акция', 'цена'],
         ['акция', 'супер'],
         ['правила акции'],
+        ['условия акции'],
         ['невероятная акция'],
         ['эксклюзивные бонусы'],
         ['по', 'низким ценам'],
@@ -101,11 +131,13 @@
         ['доставка', 'заказать'],
         ['оплата при получении'],
         ['проверь', 'прямо сейчас'],
+        ['проверить себя', 'здесь', 'http'],
         ['заходи на'],
         ['заходи в паблик'],
         ['от подписчика', 'добавляйтесь'],
         ['только подумайте', 'игра'],
         ['группа номер один'],
+        ['группа', 'знает все', 'советуем ознакомиться'],
         ['перейти к просмотру'],
         ['смотрите в источнике'],
         ['смотреть в источнике'],
@@ -130,6 +162,7 @@
         ['загляни к нам'],
         ['iphone', 'репост'],
         ['iphone', 'бесплатно'],
+        ['скачать', 'iphone', 'android'],
         ['бесплатно на'],
         ['бесплатный', 'за две недели'],
         ['гороскоп на'],
@@ -177,6 +210,7 @@
         ['перевернут', 'представление'],
         ['не для слабонервных', 'не смотреть'],
         ['новая коллекция', 'доставка'],
+        ['доставка', 'бесплатная', 'заказ'],
         ['курс', 'записывайтесь'],
         ['сохраняй', 'на стенку'],
         ['получи', 'кросс'],
@@ -206,7 +240,6 @@
         ['полезный сервис', 'геймер'],
         ['взломать блогеров'],
         ['открытие китая с евгением'],
-        ['у истории под юбкой'],
         ['бесплатный билет'],
         ['пройди тест', 'узнай'],
         ['нет времени объяснять', 'тебя ждет'],
@@ -215,14 +248,22 @@
         ['взорвала интернет', 'подробнее'],
         ['куплен', 'здесь', 'цена'],
         ['заказ', 'подробности'],
-        ['max twain'],
-        ['nine store'],
-        ['стоп бред!'],
-        ['красное&белое 18+'],
-        ['яуза парк'],
-        ['дисконт'],
         ['fastppc.net'],
+        ['amsterdamday.ru'],
+        ['мшп.рф'],
+        ['программист2016.рф'],
         ['бесплатный мастер-класс'],
+        ['курс', 'условия', 'подробности'],
+        ['курс', 'абсолютно бесплатно'],
+        ['добавляйтесь в друзья'],
+        ['для заказа пишите'],
+        ['телефон', 'наша группа'],
+        ['выигрывайте приз'],
+        ['читaть продолжение'],
+        ['заказать', 'на нашем сайте'],
+        ['нашли', 'рекомендуем'],
+        ['подпишется', 'нажмет', 'желаю'],
+        ['жми', 'смотри, что получится'],
         ['підписуйся'],
         ['підписуйтесь'],
         ['підпишись'],
@@ -249,35 +290,82 @@
         ['замовляй', 'на сайті'],
         ['долучайтесь', 'буде цікаво', 'спільнота'],
         ['додаток', 'заробив'],
-        ['пропоную послуги'],
-        ['apple room']
+        ['пропоную послуги']
     ];
 
     // Check post to contain one or more 'junkGroups'.
     function isJunk(post) {
-        var wallTextSelector = post.querySelector('.wall_post_text');
-        if (wallTextSelector) {
-            var wallText = wallTextSelector.textContent.toLowerCase();
-            var quoteSelector = post.querySelector('.copy_quote');
-            if (quoteSelector) {
-                var authorSelector = quoteSelector.querySelector('.copy_author');
-                wallText += ' "' + authorSelector.textContent.toLowerCase() + '" ';
-                var quoteTextSelector = quoteSelector.querySelector('.wall_post_text');
-                if (quoteTextSelector && wallTextSelector != quoteTextSelector) {
-                    var quoteText = quoteTextSelector.textContent.toLowerCase();
-                    wallText += quoteText;
+        var postTextDiv = post.querySelector('.wall_post_text');
+        if (postTextDiv) {
+            var postText = postTextDiv.textContent.toLowerCase();
+            var repostDiv = post.querySelector('.copy_quote');
+            if (repostDiv) {
+                var repostAuthorA = repostDiv.querySelector('.copy_author');
+                var repostAuthor = '"' + repostAuthorA.textContent.toLowerCase() + '"';
+                var repostTextDiv = repostDiv.querySelector('.wall_post_text');
+                if (repostTextDiv) {
+                    if (postTextDiv != repostTextDiv) {
+                        var repostText = repostTextDiv.textContent.toLowerCase();
+                        postText += '\n' + repostText;
+                    } else {
+                        postText = repostText = repostTextDiv.textContent.toLowerCase();
+                    }
                 }
             }
-            return junkGroups.some(function (v) {
-                var value = v.every(function (junk) {
-                    return wallText.indexOf(junk) >= 0;
+            var postLinks = postTextDiv.querySelectorAll('.mem_link');
+            if (postLinks) {
+                var postLinksTexts = [];
+                postLinks.forEach(function(e) {
+                    postLinksTexts.push('"' + e.textContent.toLowerCase() + '"');
                 });
-                if (value) {
-                    console.log("\nJunk detected!");
-                    console.log("Rule: " + v);
-                    console.log("Text: " + wallText);
+            }
+            return junkGroups.some(function(junkGroup) {
+                var isJunkDetected = junkGroup.every(function(junk) {
+                    var linkTextModifier = junk.indexOf('$link-text=');
+                    if (linkTextModifier == 0) {
+                        if (postLinks) {
+                            var junkText = junk.slice(11); // '$link-text='.length
+                            return postLinksTexts.some(function(e) {
+                                return e.indexOf(junkText) >= 0;
+                            });
+                        }
+                        return false;
+                    }
+                    var repostAuthorModifier = junk.indexOf('$repost-author=');
+                    if (repostAuthorModifier == 0) {
+                        if (repostDiv) {
+                            var junkText = junk.slice(15); // '$repost-author='.length
+                            return repostAuthor.indexOf(junkText) >= 0;
+                        }
+                        return false;
+                    }
+                    var repostTextModifier = junk.indexOf('$repost-text=');
+                    if (repostTextModifier == 0) {
+                        if (repostTextDiv) {
+                            var junkText = junk.slice(13); // '$repost-text='.length
+                            return repostText.indexOf(junkText) >= 0;
+                        }
+                        return false;
+                    }
+                    return postText.indexOf(junk) >= 0;
+                });
+                if (isJunkDetected) {
+                    console.log('\nJunk detected!');
+                    console.log('Rule: ' + junkGroup);
+                    console.log('Text: ' + postText);
+                    if (repostDiv) {
+                        console.log('Repost author: ' + repostAuthor);
+                    }
+                    if (repostTextDiv) {
+                        console.log('Repost text: ' + repostText);
+                    }
+                    if (postLinks) {
+                        postLinksTexts.forEach(function(e) {
+                            console.log('Link text: ' + e);
+                        });
+                    }
                 }
-                return value;
+                return isJunkDetected;
             });
         }
     }
@@ -354,7 +442,7 @@
             var post = posts[posts.length - 1 - i];
             if (!isHidden(post) && isJunk(post)) {
                 hide(post);
-                console.log("Junk removed!");
+                console.log('Junk removed!');
             }
         }
     }
