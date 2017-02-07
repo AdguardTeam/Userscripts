@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Disable Video AutoPlay by Adguard
 // @namespace    https://adguard.com/
-// @version      1.0.4
+// @version      1.0.5
 // @description  Ensures that HTML5 video elements do not autoplay
 // @author       Adguard
 // @include      http://*
@@ -14,72 +14,100 @@
 // @grant        window
 // ==/UserScript==
 
-(function() {
+(function () {
+
+    /**
+     * Fires an event on the specified element
+     * 
+     * @param el Element
+     * @param etype Event type
+     */
+    function fireEvent(el, etype) {
+        if (el.fireEvent) {
+            el.fireEvent('on' + etype);
+        } else {
+            var evObj = document.createEvent('Events');
+            evObj.initEvent(etype, true, false);
+            el.dispatchEvent(evObj);
+        }
+    }
 
 	/**
 	 * Metacritic.com
 	 * https://github.com/AdguardTeam/Userscripts/issues/9
 	 */
-	var metacritic = function() {
-        if (window.localStorage) {
-        	window.localStorage.setItem("mc_autoplay", "false");
-        } else {
-            document.cookie = "mc_autoplay=false;";
+    var metacritic = function () {
+        try {
+            if (window.localStorage) {
+                window.localStorage.setItem("mc_autoplay", "false");
+            } else {
+                document.cookie = "mc_autoplay=false;";
+            }
+        } catch (ex) {
+            // Safari throws exception while in Private mode.
+            // Ignore it.
         }
-	};
-    
+
+        document.addEventListener("DOMContentLoaded", function() {
+            var el = document.querySelector(".autoplay.on");
+            if (el) {
+                fireEvent(el, "click");
+            }
+        });
+    };
+
     /**
      * For some hosts it is not enough to use a generic rule.
      * So we have to use complicated rules instead.
      */
     var hostRules = {
-    	"www.metacritic.com": metacritic
+        "www.metacritic.com": metacritic
     };
 
     /**
      * Applies per-host rules
      */
-    var applyHostRules = function(){
+    var applyHostRules = function () {
         var hostRule = hostRules[window.location.hostname];
 
         if (hostRule) {
             hostRule.apply(this);
         }
     };
-    
+
     /**
      * Searches for all "video" elements and changes "autoplay" attribute to false
      * Based on  http://diveintohtml5.info/examples/disable_video_autoplay.user.js
      */
-	var removeAutoplay = function() {
-		var arVideos = document.getElementsByTagName('video');
-		for (var i = arVideos.length - 1; i >= 0; i--) {
-		    var elmVideo = arVideos[i];
+    var removeAutoplay = function () {
+        var arVideos = document.getElementsByTagName('video');
+        for (var i = arVideos.length - 1; i >= 0; i--) {
+            var elmVideo = arVideos[i];
             if (elmVideo.autoplay) {
                 console.log('[Disable Video AutoPlay by Adguard] Removing autoplay attribute');
                 elmVideo.autoplay = false;
             }
-		}
-	};
+        }
+    };
 
     /**
      * Called on any DOM change to handle "video" tags added dynamically
      */
-	var handleDomChange = function(mutations) {
-		if (mutations.length === 0) {
-			removeAutoplay();
-		}
-	};
+    var handleDomChange = function (mutations) {
+        if (mutations.length === 0) {
+            removeAutoplay();
+        }
+    };
 
     /**
      * Initialize script
      */
-	var init = function() {
+    var init = function () {
 
         // Apply per-host rule
         applyHostRules();
-       
-        window.addEventListener("DOMContentLoaded", function() {
+
+        window.addEventListener("DOMContentLoaded", function () {
             // Check existing elements first
             removeAutoplay();
 
@@ -90,7 +118,7 @@
                 subtree: true
             });
         });
-	};
+    };
 
     init();
 })();
