@@ -2,7 +2,7 @@
 // @name            Фильтр групп смерти ВК
 // @description     Фильтрует и скрывает потенциально опасные посты в ленте ВК.
 // @author          Adguard
-// @version         1.0.1
+// @version         1.0.2
 // @include         *://vk.com/*
 // @run-at          document-end
 // @downloadURL     https://github.com/AdguardTeam/Userscripts/raw/master/vkFilter/vk-feed-filter.user.js
@@ -128,6 +128,8 @@
     var domObserver = new DomObserver(function() {
         inner();
         setTimeout(inner, 100);
+        setTimeout(inner, 1000);
+        setTimeout(inner, 2000);
     });
     domObserver.observe();
 })();
