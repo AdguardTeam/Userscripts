@@ -1,10 +1,10 @@
 // ==UserScript==
 // @name         Extended Css Debugger
 // @namespace    https://adguard.com/
-// @version      0.1
+// @version      0.2
 // @description  A very simple userscript that exposes ExtendedCss object. Use `ExtendedCss.query` calls to debug selectors.
 // @author       Adguard
-// @require      https://AdguardTeam.github.io/ExtendedCss/extended-css.js
+// @require      https://adguardteam.github.io/ExtendedCss/extended-css.js
 // @match        http://*/*
 // @match        https://*/*
 // @grant        unsafeWindow
