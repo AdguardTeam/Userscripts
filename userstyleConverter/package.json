@@ -1,0 +1,23 @@
+{
+  "name": "userstyleConverter",
+  "version": "0.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "scripts": {
+    "dev": "cross-env NODE_ENV=development webpack-dev-server",
+    "build": "cross-env NODE_ENV=production webpack"
+  },
+  "devDependencies": {
+    "babel-core": "^6.26.0",
+    "babel-loader": "^7.1.2",
+    "babel-plugin-transform-es2015-for-of": "^6.23.0",
+    "babel-plugin-transform-es2015-template-literals": "^6.22.0",
+    "cross-env": "^5.1.1",
+    "webpack": "^3.8.1",
+    "webpack-dev-server": "^2.9.4"
+  },
+  "dependencies": {
+    "postcss": "^6.0.14",
+    "postcss-safe-parser": "^3.0.1"
+  }
+}
