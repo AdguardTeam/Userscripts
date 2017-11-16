@@ -42,17 +42,9 @@ if (process.env.NODE_ENV === 'production') {
     config.module.loaders.push({
         test: /\.js$/,
         loader: "babel-loader",
-        include: path.resolve(__dirname, "index.js"),
+        include: [path.resolve(__dirname, "index.js"),path.resolve(__dirname, "builder.js")],
         query: {
-            plugins: [
-                ["transform-es2015-for-of", {
-                    "loose": true
-                }],
-                ["transform-es2015-template-literals", {
-                    "loose": true,
-                    "spec": false
-                }]
-            ],
+            "presets": [ "es2015" ] 
         }
     });
 }
