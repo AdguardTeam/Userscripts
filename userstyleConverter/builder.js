@@ -145,7 +145,7 @@ Builder.prototype.consumeMozDocParam = function (params) {
 Builder.prototype.emitUrlCondition = function (name, arg) {
     switch (name) {
         case "domain":
-            this.emit(`/(?:^|\\.)${escapeRegexSource(arg)}$/.test(domain)`);
+            this.emit(`/(?:^|\\.)${escapeDomain(arg)}$/.test(domain)`);
             if (!this.cannotUseGmDirective) {
                 this.matchPatterns.push(`*://${arg}/*`);
                 this.matchPatterns.push(`*://*.${arg}/*`);
@@ -160,9 +160,12 @@ Builder.prototype.emitUrlCondition = function (name, arg) {
         case "url-prefix":
             this.emit(`url.indexOf("${escapeDoubleQuote(arg)}") === 0`);
             if (!this.cannotUseGmDirective) {
-                var pathStartInd = arg.indexOf('/', 7);
+                var pathStartInd = arg.indexOf('/', 8);
                 if (pathStartInd !== -1) {
                     this.matchPatterns.push(arg.slice(0, pathStartInd) + '/*');
+                } else {
+                    this.cannotUseGmDirective = true;
+                    this.matchPatterns = [];
                 }
             }
             break;
@@ -186,9 +189,7 @@ Builder.prototype.consumeMozDocBlock = function (mozDocNode) {
     this.outdent();
     this.emit(') {');
     this.indent();
-    for (var node of mozDocNode.nodes) {
-        this.emitNodeContent(node);
-    }
+    this.emitChildrenContent(mozDocNode);
     this.outdent();
     this.emit('}');
 };
@@ -266,6 +267,10 @@ function escapeDoubleQuote(str) {
 
 function escape(m) {
     return '\\' + m;
+}
+
+function escapeDomain(str) {
+    return str.replace(/\./g, '\\.');
 }
 
 /**
