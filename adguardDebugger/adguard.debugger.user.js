@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         AdGuard Debugger
 // @namespace    https://adguard.com/
-// @version      0.1
+// @version      0.2
 // @description  Call AdGuardDebugger.printHidden() from the browser console to print the elements that are most likely hidden by AG element hiding rules.
 // @author       AdGuard
 // @match        http://*/*
@@ -16,62 +16,23 @@
  * Get the css rules of a stylesheet which apply to the htmlNode. Meaning its class
  * its id and its tag.
  * 
- * @param CSSStyleSheet styleSheet
- * @param HTMLElement htmlNode
+ * @param {CSSStyleSheet} styleSheet style sheet
+ * @param {HTMLElement} htmlNode node which styles are we loading
  */
 function getCssRules(styleSheet, htmlNode) {
     if (!styleSheet) {
         return null;
     }
 
+    var currentCssRules;
+    try {
+        currentCssRules = styleSheet.cssRules;
+    } catch (ex) {
+        return null;
+    }
+
     var cssRules = new Array();
-    if (styleSheet.cssRules) {
-        var currentCssRules = styleSheet.cssRules;
-        // Import statement are always at the top of the css file.
-        for (var i = 0; i < currentCssRules.length; i++) {
-            // cssRules all contains the import statements.
-            // check if the rule is an import rule.
-            if (isImportRule(currentCssRules[i])) {
-                // import the rules from the imported css file.
-                var importCssRules = getCssRules(currentCssRules[i].styleSheet, htmlNode);
-                if (importCssRules != null) {
-                    // Add the rules from the import css file to the list of css rules.
-                    cssRules = addToArray(cssRules, importCssRules, htmlNode);
-                }
-                // Remove the import css rule from the css rules.
-                styleSheet.deleteRule(i);
-            }
-            else {
-                // We found a rule that is not an CSSImportRule
-                break;
-            }
-        }
-        // After adding the import rules (lower priority than those in the current stylesheet),
-        // add the rules in the current stylesheet.
-        cssRules = addToArray(cssRules, currentCssRules, htmlNode);
-    }
-    else if (styleSheet.rules) {
-        // IE6-8
-        // rules do not contain the import statements.
-        var currentCssRules = styleSheet.rules;
-
-        // Handle the imports in a styleSheet file.
-        if (styleSheet.imports) {
-            // IE6-8 use a seperate array which contains the imported css files.
-            var imports = styleSheet.imports;
-            for (var i = 0; i < imports.length; i++) {
-                var importCssRules = getCssRules(imports[i], htmlNode);
-                if (importCssRules != null) {
-                    // Add the rules from the import css file to the list of css rules.
-                    cssRules = addToArray(cssRules, importCssRules, htmlNode);
-                }
-            }
-        }
-        // After adding the import rules (lower priority than those in the current stylesheet),
-        // add the rules in the current stylesheet.
-        cssRules = addToArray(cssRules, currentCssRules, htmlNode);
-    }
-
+    cssRules = addToArray(cssRules, currentCssRules, htmlNode);
     return cssRules;
 }
 
@@ -84,8 +45,9 @@ function getCssRules(styleSheet, htmlNode) {
  */
 function addToArray(cssRules, newRules, htmlNode) {
     for (var i = 0; i < newRules.length; i++) {
-        if (htmlNode != undefined && htmlNode != null && isMatchCssRule(htmlNode, newRules[i]))
+        if (htmlNode != undefined && htmlNode != null && isMatchCssRule(htmlNode, newRules[i])) {
             cssRules.push(newRules[i]);
+        }
     }
     return cssRules;
 }
@@ -98,14 +60,6 @@ function addToArray(cssRules, newRules, htmlNode) {
 function isMatchCssRule(htmlNode, cssRule) {
     // Simply use jQuery here to see if there cssRule matches the htmlNode...
     return $(htmlNode).is(cssRule.selectorText);
-}
-
-/**
- * Verifies if the cssRule implements the interface of type CSSImportRule.
- * @param CSSRule cssRule
- */
-function isImportRule(cssRule) {
-    return cssRule.constructor.toString().search("CSSImportRule") != -1;
 }
 
 /**
@@ -203,20 +157,66 @@ function hasImportant(htmlNode, property) {
     return false;
 }
 
+function removeQuotes(value) {
+    if (typeof value === "string" && value.length > 1 &&
+        (value[0] === '"' && value[value.length - 1] === '"' || value[0] === '\'' && value[value.length - 1] === '\'')) {
+        // Remove double-quotes or single-quotes
+        value = value.substring(1, value.length - 1);
+    }
+    return value;
+}
 
 unsafeWindow.AdGuardDebugger = {
 
     /**
-     * 
+     * Prints elements hidden by an "important" rule
      */
-    printHidden: function() {
-        document.querySelectorAll('*').forEach(function(el) {
+    printHidden: function () {
+
+        console.log(`This userscript prints a list of the elements supposedly hidden by AdGuard.
+It will print only those hidden by basic element hiding rules and not the complicated ones.
+Also please note, that the outcome is different and depends on the version of AdGuard you're using.
+
+1. It will print all elements hidden with a "display: none!important" style (AG for Win/Mac/Android use it).
+2. In the case of the browser extensions, it will work ONLY if you have "send ad filters usage stats" option enabled. 
+In this case, it will be able to print not only the elements, but also the rules text.
+IMPORTANT: does not work with the user filter rules`);
+
+        var hiddenElements = {
+            displayNoneImportant: [],
+            elemHide: []
+        };
+
+        var CONTENT_ATTR_PREFIX = "adguard";
+
+        document.querySelectorAll('*').forEach(function (el) {
             var style = window.getComputedStyle(el);
             if (style.getPropertyValue("display") === "none" && hasImportant(el, "display")) {
                 // display: none!important
                 // most likely it's hidden by AG
-                console.log(el);
+                hiddenElements.displayNoneImportant.push(el);
+            } else if (style.getPropertyValue("display") === "none" && style.getPropertyValue("content")) {
+                var content = removeQuotes(decodeURIComponent(style.getPropertyValue('content')));
+                if (content.indexOf(CONTENT_ATTR_PREFIX) !== 0) {
+                    return;
+                }
+
+                var filterIdAndRuleText = content.substring(CONTENT_ATTR_PREFIX.length);
+                // Attribute 'content' in css looks like: {content: 'adguard{filterId};{ruleText}'}
+                var index = filterIdAndRuleText.indexOf(';');
+                if (index < 0) {
+                    return;
+                }
+                var filterId = filterIdAndRuleText.substring(0, index);
+                var ruleText = filterIdAndRuleText.substring(index + 1);
+                hiddenElements.elemHide.push({
+                    filterId: filterId,
+                    ruleText: ruleText,
+                    element: el
+                });
             }
         });
+
+        console.log(hiddenElements);
     }
 };
