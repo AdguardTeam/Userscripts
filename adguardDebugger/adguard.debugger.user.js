@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         AdGuard Debugger
 // @namespace    https://adguard.com/
-// @version      0.2
+// @version      0.3
 // @description  Call AdGuardDebugger.printHidden() from the browser console to print the elements that are most likely hidden by AG element hiding rules.
 // @author       AdGuard
 // @match        http://*/*
@@ -26,7 +26,7 @@ function getCssRules(styleSheet, htmlNode) {
 
     var currentCssRules;
     try {
-        currentCssRules = styleSheet.cssRules;
+        currentCssRules = styleSheet.cssRules || [];
     } catch (ex) {
         return null;
     }
