@@ -3,7 +3,7 @@
 // @description     Userscript for blocking sponsored posts in VK groups. Based on http://pastebin.com/JXHpU0ku
 // @description:ru  Расширение для блокирования рекламных постов в ВК. Основано на http://pastebin.com/JXHpU0ku
 // @author          Adguard
-// @version         1.0.2
+// @version         1.0.3
 // @include         *://vk.com/*
 // @run-at          document-end
 // @downloadURL     https://github.com/AdguardTeam/Userscripts/raw/master/adguardForVk/adguard-vk.user.js
@@ -14,6 +14,8 @@
 (function () {
 
     'use strict';
+  
+    var log = console.log;
     
     // Ad words groups.
     // Each item describes a one rule with `and` boolean logic, so rule '[1,2,3]' will hide posts 
@@ -21,28 +23,6 @@
     // Original text will be lowercased before search operation, so each rule should be in lowercase to work.
     var junkGroups = [
         ['vk.cc/'],
-        ['$link-text=покaзaть пoлнocтью'],
-        ['$link-text=продолжение'],
-        ['$link-text=ты должен видеть это'],
-        ['$link-text=кликай'],
-        ['$link-text=подписаться'],
-        ['$link-text=смотреть'],
-        ['$link-text=тебе сюда'],
-        ['$link-text=я парень'],
-        ['$link-text="•"'],
-        ['$repost-author=max twain'],
-        ['$repost-author=nine store'],
-        ['$repost-author=стоп бред!'],
-        ['$repost-author=красное&белое 18+'],
-        ['$repost-author=яуза парк'],
-        ['$repost-author=дисконт'],
-        ['$repost-author=fisher-price'],
-        ['$repost-author=adidas originals'],
-        ['$repost-author=drinkenergy.ru'],
-        ['$repost-author=history porn'],
-        ['$repost-author=убойные приколы'],
-        ['$repost-author=apple room'],
-        ['$repost-text=жми '],
         ['подпишись'],
         ['подписывайся'],
         ['подписывайтесь'],
@@ -295,75 +275,18 @@
 
     // Check post to contain one or more 'junkGroups'.
     function isJunk(post) {
-        var postTextDiv = post.querySelector('.wall_post_text');
+        var postTextDiv = post.querySelector('.wall_text');
         if (postTextDiv) {
-            var postText = postTextDiv.textContent.toLowerCase();
-            var repostDiv = post.querySelector('.copy_quote');
-            if (repostDiv) {
-                var repostAuthorA = repostDiv.querySelector('.copy_author');
-                var repostAuthor = '"' + repostAuthorA.textContent.toLowerCase() + '"';
-                var repostTextDiv = repostDiv.querySelector('.wall_post_text');
-                if (repostTextDiv) {
-                    if (postTextDiv != repostTextDiv) {
-                        var repostText = repostTextDiv.textContent.toLowerCase();
-                        postText += '\n' + repostText;
-                    } else {
-                        postText = repostText = repostTextDiv.textContent.toLowerCase();
-                    }
-                }
-            }
-            var postLinks = postTextDiv.querySelectorAll('.mem_link');
-            if (postLinks) {
-                var postLinksTexts = [];
-                postLinks.forEach(function(e) {
-                    postLinksTexts.push('"' + e.textContent.toLowerCase() + '"');
-                });
-            }
+            var postText = postTextDiv.innerText.toLowerCase();
+
             return junkGroups.some(function(junkGroup) {
                 var isJunkDetected = junkGroup.every(function(junk) {
-                    var linkTextModifier = junk.indexOf('$link-text=');
-                    if (linkTextModifier == 0) {
-                        if (postLinks) {
-                            var junkText = junk.slice(11); // '$link-text='.length
-                            return postLinksTexts.some(function(e) {
-                                return e.indexOf(junkText) >= 0;
-                            });
-                        }
-                        return false;
-                    }
-                    var repostAuthorModifier = junk.indexOf('$repost-author=');
-                    if (repostAuthorModifier == 0) {
-                        if (repostDiv) {
-                            var junkText = junk.slice(15); // '$repost-author='.length
-                            return repostAuthor.indexOf(junkText) >= 0;
-                        }
-                        return false;
-                    }
-                    var repostTextModifier = junk.indexOf('$repost-text=');
-                    if (repostTextModifier == 0) {
-                        if (repostTextDiv) {
-                            var junkText = junk.slice(13); // '$repost-text='.length
-                            return repostText.indexOf(junkText) >= 0;
-                        }
-                        return false;
-                    }
                     return postText.indexOf(junk) >= 0;
                 });
                 if (isJunkDetected) {
-                    console.log('\nJunk detected!');
-                    console.log('Rule: ' + junkGroup);
-                    console.log('Text: ' + postText);
-                    if (repostDiv) {
-                        console.log('Repost author: ' + repostAuthor);
-                    }
-                    if (repostTextDiv) {
-                        console.log('Repost text: ' + repostText);
-                    }
-                    if (postLinks) {
-                        postLinksTexts.forEach(function(e) {
-                            console.log('Link text: ' + e);
-                        });
-                    }
+                    log('Junk detected!');
+                    log('Rule: ' + junkGroup);
+                    log('Text: ' + postText);
                 }
                 return isJunkDetected;
             });
@@ -442,7 +365,7 @@
             var post = posts[posts.length - 1 - i];
             if (!isHidden(post) && isJunk(post)) {
                 hide(post);
-                console.log('Junk removed!');
+                log('Junk removed!');
             }
         }
     }
