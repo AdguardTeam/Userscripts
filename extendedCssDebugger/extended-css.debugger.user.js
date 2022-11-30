@@ -12,4 +12,4 @@
 // @updateURL    https://github.com/AdguardTeam/Userscripts/raw/master/extendedCssDebugger/extended-css.debugger.user.js
 // ==/UserScript==
 
-unsafeWindow.ExtendedCss = ExtendedCss.ExtendedCss;
+unsafeWindow.ExtendedCss = ExtendedCss;
