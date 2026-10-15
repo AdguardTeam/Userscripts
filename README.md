@@ -19,7 +19,3 @@ These utilities are optional; hosting them here does not automatically bundle th
 Fixes and improvements to existing utilities and AdGuard-related debugging/development tooling are welcome. Please discuss new additions first.
 
 This repository is not a general-purpose userscript hosting or catalog service. Unrelated website-specific enhancements should be maintained in the author's own repository or a userscript catalog.
-
-## Retired scripts
-
-The legacy, unmaintained `adguardForVk/adguard-vk.user.js` and `vkFilter/vk-feed-filter.user.js` scripts were removed as outside the clarified scope and are no longer supported here. They remain available in [Git history](https://github.com/AdguardTeam/Userscripts/tree/33c6cbc870f7f8f1c6160817c9be3208a9b68c94). Removal makes their `master` download/update URLs unavailable but does not uninstall already installed copies; we recommend removing obsolete copies.
